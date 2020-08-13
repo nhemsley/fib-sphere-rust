@@ -29,9 +29,13 @@ fn main() {
 
     // let mut sweep = sweeping_iterator::SweepingIterator::new(max_points as i32);
 
-    // let num_points = sweep.next().unwrap();
-    // let num_points = sweep.next().unwrap();
     let mut num_points: u32 = 5;
+    let mut num_points_idx: usize = 0;
+    let num_points_idx_max: usize = 100;
+    let power_idx: f32 = 1.8;
+
+    let num_points_arr: Vec<u32> = (0..num_points_idx_max).collect::<Vec<usize>>().iter().map(|idx| {(idx.clone() as f32).powf(power_idx) as u32}).collect::<Vec<u32>>();
+    // println!("{:#?}", num_points_arr);
     let mut spheres: Vec<three::Mesh> = vec!{};
 
     let group: three::Group = win.factory.group();
@@ -53,7 +57,7 @@ fn main() {
         // println!("{}", num_points);
 
         if changed {
-            println!("changed, resetting group: n: {}", num_points);
+            // println!("changed, resetting group: n: {}, n_idx: {}", num_points, num_points_idx);
             // let sync = win.scene.sync_guard();
             if spheres.len() > 0 {
                 spheres.iter().for_each(|sphere| group.remove(sphere))
@@ -76,25 +80,32 @@ fn main() {
             spheres.iter().for_each(|sphere| group.add(sphere));
         }
 
-        let change_per_diff = 30;
-    
         if let Some(diff) = win.input.timed(three::AXIS_LEFT_RIGHT) {
-            if diff > 0.0  && num_points < max_points {
-                num_points = (num_points + change_per_diff).min(max_points);
+            if diff > 0.0  && num_points_idx < num_points_idx_max-1 {
+                num_points_idx = (num_points_idx + 1).min(num_points_idx_max - 1);
+                num_points = num_points_arr[num_points_idx];
+                // println!("a {}", num_points);
+                // println!("{}, {}", num_points_idx, num_points_idx_max);
+
                 changed = true;
-            } else if diff < 0.0 && num_points > 0 {
-                num_points = (num_points as i32 - change_per_diff as i32).max(0) as u32;
-                println!("{}", num_points);
+            } else if diff < 0.0 && num_points_idx > 0 {
+                num_points_idx = ((num_points_idx as i32) - 1).max(0) as usize;
+                num_points = num_points_arr[num_points_idx];
+                // println!("b {}", num_points);
                 changed = true;
             } else {
                 changed = false;
+                // println!("c")
             }
             // if changed == true {
             //     println!("{}", diff);
             // }
         } else {
             // println!("changing = false");
-            if changed == true { changed = false};
+            if changed == true { 
+                changed = false;
+                // println!("d")
+            };
         }
         win.render(&cam);
     }
