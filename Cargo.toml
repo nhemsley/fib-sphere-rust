@@ -1,0 +1,12 @@
+[package]
+name = "fib-sphere"
+version = "0.1.0"
+authors = ["Nick Hemsley <nick.hems@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+three = "0.4"
+cgmath = { version = "0.16", features = ["mint"] }
+mint = "0.5"
