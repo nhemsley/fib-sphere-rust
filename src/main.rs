@@ -26,15 +26,21 @@ fn main() {
     let light = win.factory.point_light(0xffffff, 1.0);
     light.set_position([10.0, 10.0, 10.0]);
     win.scene.add(&light);
-
+    
+    let light2 = win.factory.point_light(0xffffff, 1.0);
+    light2.set_position([-10.0, -10.0, -10.0]);
+    win.scene.add(&light2);
+        
     // let mut sweep = sweeping_iterator::SweepingIterator::new(max_points as i32);
 
     let mut num_points: u32 = 5;
     let mut num_points_idx: usize = 0;
-    let num_points_idx_max: usize = 100;
+    let num_points_idx_max: usize = 5000;
     let power_idx: f32 = 1.8;
 
-    let num_points_arr: Vec<u32> = (0..num_points_idx_max).collect::<Vec<usize>>().iter().map(|idx| {(idx.clone() as f32).powf(power_idx) as u32}).collect::<Vec<u32>>();
+    let mut idx_direction: i8 = 0;
+
+    let num_points_arr: Vec<u32> = (0..num_points_idx_max as u32).collect::<Vec<u32>>().to_vec();
     // println!("{:#?}", num_points_arr);
     let mut spheres: Vec<three::Mesh> = vec!{};
 
@@ -52,8 +58,22 @@ fn main() {
     while win.update() && !win.input.hit(three::KEY_ESCAPE) {
         // println!("{}", num_points);
         controls.update(&win.input);
+        let keys_hit = win.input.keys_hit();
+        if keys_hit.len() > 0 { 
+            let key_hit: three::Key = keys_hit[0];
+            println!("{:#?}", key_hit);
+            if key_hit == three::Key::A {
+                idx_direction = -1;
+            } else if key_hit == three::Key::D {
+                idx_direction = 1;
+            } else {
+                idx_direction = 0;
+            }
+            
+        }
+        
 
-        let points: Vec<mint::Point3<f32>> = packing::points_on_sphere_fib(num_points, 0.9);
+        let points: Vec<mint::Point3<f32>> = packing::points_on_sphere_fib(num_points, 1.0);
         // println!("{}", num_points);
 
         if changed {
@@ -80,32 +100,8 @@ fn main() {
             spheres.iter().for_each(|sphere| group.add(sphere));
         }
 
-        if let Some(diff) = win.input.timed(three::AXIS_LEFT_RIGHT) {
-            if diff > 0.0  && num_points_idx < num_points_idx_max-1 {
-                num_points_idx = (num_points_idx + 1).min(num_points_idx_max - 1);
-                num_points = num_points_arr[num_points_idx];
-                // println!("a {}", num_points);
-                // println!("{}, {}", num_points_idx, num_points_idx_max);
-
-                changed = true;
-            } else if diff < 0.0 && num_points_idx > 0 {
-                num_points_idx = ((num_points_idx as i32) - 1).max(0) as usize;
-                num_points = num_points_arr[num_points_idx];
-                // println!("b {}", num_points);
-                changed = true;
-            } else {
-                changed = false;
-                // println!("c")
-            }
-            // if changed == true {
-            //     println!("{}", diff);
-            // }
-        } else {
-            // println!("changing = false");
-            if changed == true { 
-                changed = false;
-                // println!("d")
-            };
+        if idx_direction != 0 {
+            num_points_idx = (num_points_idx as i32 + idx_direction as i32).min(num_points_idx_max as i32).max(0) as usize 
         }
         win.render(&cam);
     }
